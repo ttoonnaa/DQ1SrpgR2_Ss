@@ -1,7 +1,9 @@
 /Save
 /Backup
 
+*.evs
 *.png
+*.psd
 *.srpgs
 *.xlsx
 
