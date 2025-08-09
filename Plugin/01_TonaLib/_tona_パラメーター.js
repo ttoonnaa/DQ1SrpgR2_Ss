@@ -27,10 +27,10 @@ BaseUnitParameter.getUnitGrowthBonus = function(unit) {
 	var value = 0;
 
 	// 独自のユニットボーナスを加算する
-	if (unitId in z_master.playerById) {
-		var masterPlayer = z_master.playerById[unitId];
-		value += masterPlayer.growth[paramType];
-	}
+	//if (unitId in z_master.playerById) {
+	//	var masterPlayer = z_master.playerById[unitId];
+	//	value += masterPlayer.growth[paramType];
+	//}
 
 	return value;
 };
@@ -59,10 +59,10 @@ BaseUnitParameter.getClassParameterBonus = function(klass) {
 	var value = 0;
 
 	// 独自のクラスボーナスを加算する
-	if (klassId in z_master.klassById) {
-		var masterKlass = z_master.klassById[klassId];
-		value += masterKlass.paramsBonus[paramType];
-	}
+	//if (klassId in z_master.klassById) {
+	//	var masterKlass = z_master.klassById[klassId];
+	//	value += masterKlass.paramsBonus[paramType];
+	//}
 
 	return value;
 };
@@ -77,10 +77,10 @@ BaseUnitParameter.getClassGrowthBonus = function(klass) {
 	var value = 0;
 
 	// 独自のクラスボーナスを加算する
-	if (klassId in z_master.klassById) {
-		var masterKlass = z_master.klassById[klassId];
-		value += masterKlass.growthBonus[paramType];
-	}
+	//if (klassId in z_master.klassById) {
+	//	var masterKlass = z_master.klassById[klassId];
+	//	value += masterKlass.growthBonus[paramType];
+	//}
 
 	return value;
 };
