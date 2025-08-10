@@ -147,14 +147,14 @@ NormalAttackOrderBuilder._getAttackCount = function(virtualActive, virtualPassiv
 };
 
 // *****************************************************************************************************************************
-// ダメージの計算
+// ダメージ計算：攻撃を計算
 // -----------------------------------------------------------------------------------------------------------------------------
 
-DamageCalculator.calculateAttackPower = function(active, passive, weapon, isCritical, totalStatus, trueHitValue, tona_skills) {
+DamageCalculator.calculateAttackPower = function(active, passive, weapon, isCritical, totalStatus, trueHitValue, tona_isEffective, tona_skills) {
 
 	var pow = AbilityCalculator.getPower(active, weapon) + CompatibleCalculator.getPower(active, passive, weapon) + SupportCalculator.getPower(totalStatus);
 
-	if (this.isEffective(active, passive, weapon, isCritical, trueHitValue)) {
+	if (tona_isEffective) {
 		pow += weapon.getPow() * (this.getEffectiveFactor() - 1);		// ★改造：特効は武器の威力を上げる
 	}
 
@@ -165,20 +165,22 @@ DamageCalculator.calculateAttackPower = function(active, passive, weapon, isCrit
 // ダメージの計算
 // -----------------------------------------------------------------------------------------------------------------------------
 
-DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical, activeTotalStatus, passiveTotalStatus, trueHitValue, tona_skills) {
+DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical, activeTotalStatus, passiveTotalStatus, trueHitValue, tona_isEffective, tona_skills) {
 	var pow, def, damage;
 
+	tona_isEffective = tona_isEffective || false;
 	tona_skills = tona_skills || [];
 
 	if (this.isHpMinimum(active, passive, weapon, isCritical, trueHitValue)) {
 		return -1;
 	}
 
-	pow = this.calculateAttackPower(active, passive, weapon, isCritical, activeTotalStatus, trueHitValue, tona_skills);
+	pow = this.calculateAttackPower(active, passive, weapon, isCritical, activeTotalStatus, trueHitValue, tona_isEffective, tona_skills);
 	def = this.calculateDefense(active, passive, weapon, isCritical, passiveTotalStatus, trueHitValue);
 
 	// スキルの計算は calculateAttackPower や calculateDefense でやる方法もある（trueHitValue はそうしてる）
 	// ただ、atk / def に分離できない可能性も考え、tona_skills の計算はここで行う
+	// 中に入れてもいい気がしてきた。
 
 	// ★月光：敵の守備または魔防を半減した状態で攻撃
 	if (tona_skills['スキル：月光']) {
@@ -204,18 +206,19 @@ DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical,
 // -----------------------------------------------------------------------------------------------------------------------------
 
 AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtualPassive, attackEntry) {
-	var trueHitValue = 0;
+
+	this._tona_skills = {};
+	this._tona_trueHitValue = 0;
 
 	// 必中スキルを調べておく（特効などの情報も含んでいる）
 	this._skill = SkillControl.checkAndPushSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, SkillType.TRUEHIT);
 	if (this._skill !== null) {
-		trueHitValue = this._skill.getSkillValue();
+		this._tona_trueHitValue = this._skill.getSkillValue();
 	}
 
 	// tona_skills のうち、必ず発動判定を行うものをここで処理する
 	// 命中しなくてもスキル発動演出は行うことに注意
 
-	this._tona_skills = {};
 	this._tona_skills['スキル：月光'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：月光']);
 
 	// 自分から攻撃した場合に発動するスキル
@@ -242,10 +245,10 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 	}
 
 	// 特効かどうか調べる
-	attackEntry.isEffective = this.isEffective(virtualActive, virtualPassive, attackEntry, trueHitValue);
+	attackEntry.isEffective = this.isEffective(virtualActive, virtualPassive, attackEntry);
 
 	// クリティカルかどうか調べる
-	attackEntry.isCritical = this.isCritical(virtualActive, virtualPassive, attackEntry, trueHitValue);
+	attackEntry.isCritical = this.isCritical(virtualActive, virtualPassive, attackEntry);
 
 	// 与えるダメージを計算する
 	attackEntry.damagePassive = this.calculateDamage(virtualActive, virtualPassive, attackEntry);
@@ -257,21 +260,21 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 // 通常戦闘：ダメージ計算：特効かを調べる
 // -----------------------------------------------------------------------------------------------------------------------------
 
-AttackEvaluator.HitCritical.isEffective = function(virtualActive, virtualPassive, attackEntry, trueHitValue) {
+AttackEvaluator.HitCritical.isEffective = function(virtualActive, virtualPassive, attackEntry) {
 
 	// 練達：必殺、特効を無効にする
 	if (this._tona_skills['スキル：練達']) {
 		return false;
 	}
 
-	return DamageCalculator.isEffective(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, trueHitValue);
+	return DamageCalculator.isEffective(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, this._tona_trueHitValue);
 };
 
 // *****************************************************************************************************************************
 // 通常戦闘：ダメージ計算：クリティカルかを調べる
 // -----------------------------------------------------------------------------------------------------------------------------
 
-AttackEvaluator.HitCritical.isCritical = function(virtualActive, virtualPassive, attackEntry, trueHitValue) {
+AttackEvaluator.HitCritical.isCritical = function(virtualActive, virtualPassive, attackEntry) {
 
 	// 練達：必殺、特効を無効にする
 	if (this._tona_skills['スキル：練達']) {
@@ -298,24 +301,18 @@ AttackEvaluator.HitCritical.isCritical = function(virtualActive, virtualPassive,
 // -----------------------------------------------------------------------------------------------------------------------------
 
 AttackEvaluator.HitCritical.calculateDamage = function(virtualActive, virtualPassive, attackEntry) {
-	var trueHitValue = 0;
 
-	if (this._skill !== null) {
-		trueHitValue = this._skill.getSkillValue();
-	}
-
-	if (DamageCalculator.isHpMinimum(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, trueHitValue)) {
+	if (DamageCalculator.isHpMinimum(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, this._tona_trueHitValue)) {
 		// 現在HP-1をダメージにすることで、攻撃が当たれば相手のHPは1になる
 		return virtualPassive.hp - 1;
 	}
 
-	if (DamageCalculator.isFinish(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, trueHitValue)) {
+	if (DamageCalculator.isFinish(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, this._tona_trueHitValue)) {
 		return virtualPassive.hp;
 	}
 
-	return DamageCalculator.calculateDamage(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, virtualActive.totalStatus, virtualPassive.totalStatus, trueHitValue, this._tona_skills);
+	return DamageCalculator.calculateDamage(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, virtualActive.totalStatus, virtualPassive.totalStatus, this._tona_trueHitValue, attackEntry.isEffective, this._tona_skills);
 };
-
 
 // *****************************************************************************************************************************
 // 経験値計算機
