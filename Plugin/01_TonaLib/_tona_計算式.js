@@ -166,12 +166,16 @@ DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical,
 	// ただ、atk / def に分離できない可能性も考え、tona_skills の計算はここで行う
 	// 中に入れてもいい気がしてきた。
 
-	// ★月光：敵の守備または魔防を半減した状態で攻撃
-	if (tona_skills['スキル：月光']) {
+	if ('スキル：月光' in tona_skills) {
 		def = Math.floor(def / 2);
 	}
 
 	damage = pow - def;
+
+	if ('スキル：大盾' in tona_skills) {
+		damage = Math.floor(damage / 2);
+	}
+
 	if (this.isHalveAttack(active, passive, weapon, isCritical, trueHitValue)) {
 		if (!this.isHalveAttackBreak(active, passive, weapon, isCritical, trueHitValue)) {
 			damage = Math.floor(damage / 2);
@@ -260,6 +264,7 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 
 	// 防御側のスキル
 	this._tona_skills['スキル：練達'] = SkillControl.checkAndPushCustomSkill(virtualPassive.unitSelf, virtualActive.unitSelf, attackEntry, false, tona_Keyword['スキル：練達']);
+	this._tona_skills['スキル：大盾'] = SkillControl.checkAndPushCustomSkill(virtualPassive.unitSelf, virtualActive.unitSelf, attackEntry, false, tona_Keyword['スキル：大盾']);
 
 	// 攻撃が命中するかどうかを調べる
 	attackEntry.isHit = this.isHit(virtualActive, virtualPassive, attackEntry);
