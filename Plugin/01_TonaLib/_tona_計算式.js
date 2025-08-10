@@ -166,13 +166,13 @@ DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical,
 	// ただ、atk / def に分離できない可能性も考え、tona_skills の計算はここで行う
 	// 中に入れてもいい気がしてきた。
 
-	if ('スキル：月光' in tona_skills) {
+	if (tona_skills['スキル：月光']) {
 		def = Math.floor(def / 2);
 	}
 
 	damage = pow - def;
 
-	if ('スキル：大盾' in tona_skills) {
+	if (tona_skills['スキル：大盾']) {
 		damage = Math.floor(damage / 2);
 	}
 
@@ -216,7 +216,7 @@ DamageCalculator.isEffective = function(active, passive, weapon, isCritical, tot
 
 	// ★改造：「必中：特効」より「特効無効」を優先する
 
-	if ('スキル：練達' in tona_skills) {
+	if (tona_skills['スキル：練達']) {
 		return false;
 	}
 
@@ -256,6 +256,7 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 	// 命中しなくてもスキル発動演出は行うことに注意
 
 	this._tona_skills['スキル：月光'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：月光']);
+	this._tona_skills['スキル：滅殺'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：滅殺']);
 
 	// 自分から攻撃した場合に発動するスキル
 	if (virtualActive.isInitiative) {
@@ -263,8 +264,8 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 	}
 
 	// 防御側のスキル
-	this._tona_skills['スキル：練達'] = SkillControl.checkAndPushCustomSkill(virtualPassive.unitSelf, virtualActive.unitSelf, attackEntry, false, tona_Keyword['スキル：練達']);
 	this._tona_skills['スキル：大盾'] = SkillControl.checkAndPushCustomSkill(virtualPassive.unitSelf, virtualActive.unitSelf, attackEntry, false, tona_Keyword['スキル：大盾']);
+	this._tona_skills['スキル：練達'] = SkillControl.checkAndPushCustomSkill(virtualPassive.unitSelf, virtualActive.unitSelf, attackEntry, false, tona_Keyword['スキル：練達']);
 
 	// 攻撃が命中するかどうかを調べる
 	attackEntry.isHit = this.isHit(virtualActive, virtualPassive, attackEntry);
@@ -305,6 +306,10 @@ AttackEvaluator.HitCritical.calculateDamage = function(virtualActive, virtualPas
 		return virtualPassive.hp;
 	}
 
+	if (this._tona_skills['スキル：滅殺']) {
+		return virtualPassive.hp;
+	}
+
 	return DamageCalculator.calculateDamage(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, virtualActive.totalStatus, virtualPassive.totalStatus, this._tona_trueHitValue, attackEntry.isEffective, this._tona_skills);
 };
 
@@ -315,7 +320,7 @@ AttackEvaluator.HitCritical.calculateDamage = function(virtualActive, virtualPas
 AttackEvaluator.HitCritical.isCritical = function(virtualActive, virtualPassive, attackEntry) {
 
 	// 練達：必殺、特効を無効にする
-	if ('スキル：練達' in this._tona_skills) {
+	if (this._tona_skills['スキル：練達']) {
 		return false;
 	}
 
@@ -326,7 +331,7 @@ AttackEvaluator.HitCritical.isCritical = function(virtualActive, virtualPassive,
 	}
 
 	// 勇敢：自身から攻撃したときにクリティカルになる
-	if ('スキル：勇敢' in this._tona_skills) {
+	if (this._tona_skills['スキル：勇敢']) {
 		return true;
 	}
 
