@@ -177,16 +177,12 @@ DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical,
 	pow = this.calculateAttackPower(active, passive, weapon, isCritical, activeTotalStatus, trueHitValue);
 	def = this.calculateDefense(active, passive, weapon, isCritical, passiveTotalStatus, trueHitValue);
 
-	// ★ここで tona_skills を計算する
-
 	// スキルの計算は calculateAttackPower や calculateDefense でやる方法もある（trueHitValue はそうしてる）
 	// ただ、atk / def に分離できない可能性も考え、tona_skills の計算はここで行う
 
-	// 月光：敵の守備または魔防を半減した状態で攻撃
+	// ★月光：敵の守備または魔防を半減した状態で攻撃
 	if (tona_skills['スキル：月光']) {
 		def = Math.floor(def / 2);
-
-		root.log('スキル：月光により def 半減: ' + def);
 	}
 
 	damage = pow - def;
@@ -211,8 +207,14 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 
 	this._skill = SkillControl.checkAndPushSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, SkillType.TRUEHIT);
 
+	// ★追加：tona_skills の発動判定
 	this._tona_skills = {};
 	this._tona_skills['スキル：月光'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：月光']);
+
+	// 自分から攻撃した場合に発動するスキル
+	if (virtualActive.isInitiative) {
+		this._tona_skills['スキル：勇敢'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：勇敢']);
+	}
 
 	// 攻撃が命中するかどうかを調べる
 	attackEntry.isHit = this.isHit(virtualActive, virtualPassive, attackEntry);
@@ -228,6 +230,16 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 
 	// クリティカルかどうか調べる
 	attackEntry.isCritical = this.isCritical(virtualActive, virtualPassive, attackEntry);
+	if (!attackEntry.isCritical) {
+
+		// クリティカルのスキル判定まで↑の中でやってるのはどうなんだろう？
+		// tona_skills でのクリティカルはここで判定するよ
+
+		// ★勇敢：自身から攻撃したときにクリティカルになる
+		if (this._tona_skills['スキル：勇敢']) {
+			attackEntry.isCritical = true;
+		}
+	}
 
 	// 与えるダメージを計算する
 	attackEntry.damagePassive = this.calculateDamage(virtualActive, virtualPassive, attackEntry);

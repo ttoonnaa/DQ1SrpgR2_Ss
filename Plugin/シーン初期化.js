@@ -56,7 +56,7 @@ var tona_SceneControl = {
 		// プレイヤー情報を取得
 		var unitId = tona_UnitControl.getPlayerId(unit);
 		var masterPlayer = Master.playerById[unitId];
-		var level = 1;
+		var level = 40;
 
 		// クラス情報を取得
 		var klassId = unit.getClass().getId();
