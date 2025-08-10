@@ -105,27 +105,6 @@ Calculator.isRoundAttackAllowed = function(active, passive) {
 };
 
 // *****************************************************************************************************************************
-// 攻撃回数を計算する
-// -----------------------------------------------------------------------------------------------------------------------------
-
-NormalAttackOrderBuilder._getAttackCount = function(virtualActive, virtualPassive) {
-	var skill;
-	var attackCount = virtualActive.attackCount;
-
-	skill = SkillControl.getBattleSkill(virtualActive.unitSelf, virtualPassive.unitSelf, SkillType.CONTINUOUSATTACK);
-	if (SkillRandomizer.isSkillInvoked(virtualActive.unitSelf, virtualPassive.unitSelf, skill)) {
-		// 連続攻撃のスキルによって攻撃回数が倍になる
-		attackCount *= skill.getSkillValue();
-
-		// attackEntryがないから、現時点で追加処理はできない。
-		// 後で追加できるように保存する。
-		virtualActive.skillContinuousAttack = skill;
-	}
-
-	return attackCount;
-};
-
-// *****************************************************************************************************************************
 // ラウンド数を計算する
 // -----------------------------------------------------------------------------------------------------------------------------
 
@@ -147,6 +126,27 @@ Calculator.calculateRoundCount = function(active, passive, weapon) {
 };
 
 // *****************************************************************************************************************************
+// 攻撃回数を計算する
+// -----------------------------------------------------------------------------------------------------------------------------
+
+NormalAttackOrderBuilder._getAttackCount = function(virtualActive, virtualPassive) {
+	var skill;
+	var attackCount = virtualActive.attackCount;
+
+	skill = SkillControl.getBattleSkill(virtualActive.unitSelf, virtualPassive.unitSelf, SkillType.CONTINUOUSATTACK);
+	if (SkillRandomizer.isSkillInvoked(virtualActive.unitSelf, virtualPassive.unitSelf, skill)) {
+		// 連続攻撃のスキルによって攻撃回数が倍になる
+		attackCount *= skill.getSkillValue();
+
+		// attackEntryがないから、現時点で追加処理はできない。
+		// 後で追加できるように保存する。
+		virtualActive.skillContinuousAttack = skill;
+	}
+
+	return attackCount;
+};
+
+// *****************************************************************************************************************************
 // ダメージの計算
 // -----------------------------------------------------------------------------------------------------------------------------
 
@@ -165,8 +165,10 @@ DamageCalculator.calculateAttackPower = function(active, passive, weapon, isCrit
 // ダメージの計算
 // -----------------------------------------------------------------------------------------------------------------------------
 
-DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical, activeTotalStatus, passiveTotalStatus, trueHitValue) {
+DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical, activeTotalStatus, passiveTotalStatus, trueHitValue, tona_skills) {
 	var pow, def, damage;
+
+	tona_skills = tona_skills || [];
 
 	if (this.isHpMinimum(active, passive, weapon, isCritical, trueHitValue)) {
 		return -1;
@@ -174,6 +176,18 @@ DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical,
 
 	pow = this.calculateAttackPower(active, passive, weapon, isCritical, activeTotalStatus, trueHitValue);
 	def = this.calculateDefense(active, passive, weapon, isCritical, passiveTotalStatus, trueHitValue);
+
+	// ★ここで tona_skills を計算する
+
+	// スキルの計算は calculateAttackPower や calculateDefense でやる方法もある（trueHitValue はそうしてる）
+	// ただ、atk / def に分離できない可能性も考え、tona_skills の計算はここで行う
+
+	// 月光：敵の守備または魔防を半減した状態で攻撃
+	if (tona_skills['スキル：月光']) {
+		def = Math.floor(def / 2);
+
+		root.log('スキル：月光により def 半減: ' + def);
+	}
 
 	damage = pow - def;
 	if (this.isHalveAttack(active, passive, weapon, isCritical, trueHitValue)) {
@@ -187,6 +201,57 @@ DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical,
 	}
 
 	return this.validValue(active, passive, weapon, damage);
+};
+
+// *****************************************************************************************************************************
+// ダメージの計算：通常戦闘
+// -----------------------------------------------------------------------------------------------------------------------------
+
+AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtualPassive, attackEntry) {
+
+	this._skill = SkillControl.checkAndPushSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, SkillType.TRUEHIT);
+
+	this._tona_skills = {};
+	this._tona_skills['スキル：月光'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：月光']);
+
+	// 攻撃が命中するかどうかを調べる
+	attackEntry.isHit = this.isHit(virtualActive, virtualPassive, attackEntry);
+	if (!attackEntry.isHit) {
+		if (this._skill === null) {
+			// 攻撃が命中せず、スキルも発動しないため続行しない
+			return;
+		}
+
+		// スキルは発動しているため、攻撃は命中する
+		attackEntry.isHit = true;
+	}
+
+	// クリティカルかどうか調べる
+	attackEntry.isCritical = this.isCritical(virtualActive, virtualPassive, attackEntry);
+
+	// 与えるダメージを計算する
+	attackEntry.damagePassive = this.calculateDamage(virtualActive, virtualPassive, attackEntry);
+
+	this._checkStateAttack(virtualActive, virtualPassive, attackEntry);
+};
+
+AttackEvaluator.HitCritical.calculateDamage = function(virtualActive, virtualPassive, attackEntry) {
+	var trueHitValue = 0;
+
+	if (this._skill !== null) {
+		trueHitValue = this._skill.getSkillValue();
+	}
+
+	if (DamageCalculator.isHpMinimum(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, trueHitValue)) {
+		// 現在HP-1をダメージにすることで、攻撃が当たれば相手のHPは1になる
+		return virtualPassive.hp - 1;
+	}
+
+	if (DamageCalculator.isFinish(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, trueHitValue)) {
+		return virtualPassive.hp;
+	}
+
+	return DamageCalculator.calculateDamage(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, virtualActive.totalStatus, virtualPassive.totalStatus, trueHitValue, this._tona_skills);
 };
 
 // *****************************************************************************************************************************
