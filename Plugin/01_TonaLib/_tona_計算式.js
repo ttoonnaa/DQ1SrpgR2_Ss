@@ -147,36 +147,20 @@ NormalAttackOrderBuilder._getAttackCount = function(virtualActive, virtualPassiv
 };
 
 // *****************************************************************************************************************************
-// ダメージ計算：攻撃を計算
+// ダメージ計算：ダメージ計算
 // -----------------------------------------------------------------------------------------------------------------------------
 
-DamageCalculator.calculateAttackPower = function(active, passive, weapon, isCritical, totalStatus, trueHitValue, tona_isEffective, tona_skills) {
-
-	var pow = AbilityCalculator.getPower(active, weapon) + CompatibleCalculator.getPower(active, passive, weapon) + SupportCalculator.getPower(totalStatus);
-
-	if (tona_isEffective) {
-		pow += weapon.getPow() * (this.getEffectiveFactor() - 1);		// ★改造：特効は武器の威力を上げる
-	}
-
-	return pow;
-};
-
-// *****************************************************************************************************************************
-// ダメージの計算
-// -----------------------------------------------------------------------------------------------------------------------------
-
-DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical, activeTotalStatus, passiveTotalStatus, trueHitValue, tona_isEffective, tona_skills) {
+DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical, activeTotalStatus, passiveTotalStatus, trueHitValue, tona_skills) {
 	var pow, def, damage;
 
-	tona_isEffective = tona_isEffective || false;
-	tona_skills = tona_skills || [];
+	tona_skills = tona_skills || {};
 
 	if (this.isHpMinimum(active, passive, weapon, isCritical, trueHitValue)) {
 		return -1;
 	}
 
-	pow = this.calculateAttackPower(active, passive, weapon, isCritical, activeTotalStatus, trueHitValue, tona_isEffective, tona_skills);
-	def = this.calculateDefense(active, passive, weapon, isCritical, passiveTotalStatus, trueHitValue);
+	pow = this.calculateAttackPower(active, passive, weapon, isCritical, activeTotalStatus, trueHitValue, tona_skills);
+	def = this.calculateDefense(active, passive, weapon, isCritical, passiveTotalStatus, trueHitValue, tona_skills);
 
 	// スキルの計算は calculateAttackPower や calculateDefense でやる方法もある（trueHitValue はそうしてる）
 	// ただ、atk / def に分離できない可能性も考え、tona_skills の計算はここで行う
@@ -200,6 +184,54 @@ DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical,
 
 	return this.validValue(active, passive, weapon, damage);
 };
+
+// *****************************************************************************************************************************
+// ダメージ計算：攻撃力を計算
+// -----------------------------------------------------------------------------------------------------------------------------
+
+DamageCalculator.calculateAttackPower = function(active, passive, weapon, isCritical, totalStatus, trueHitValue, tona_skills) {
+
+	var pow = AbilityCalculator.getPower(active, weapon) + CompatibleCalculator.getPower(active, passive, weapon) + SupportCalculator.getPower(totalStatus);
+
+	if (DamageCalculator.isEffective(active, passive, weapon, isCritical, totalStatus, trueHitValue, tona_skills)) {
+		pow += weapon.getPow() * (this.getEffectiveFactor() - 1);		// ★改造：特効は武器の威力を上げる
+	}
+
+	return pow;
+};
+
+// *****************************************************************************************************************************
+// ダメージ計算：特効を判定
+// -----------------------------------------------------------------------------------------------------------------------------
+
+DamageCalculator.isEffective = function(active, passive, weapon, isCritical, totalStatus, trueHitValue, tona_skills) {
+
+	// ここは攻撃予想にも通ることに注意
+	// スキル「特攻無効」は固定なのでここで判定しても良い
+	// スキル「練達」は確率なので外から与える必要がある（予想時は発動しない）
+
+	// ★改造：「必中：特効」より「特効無効」を優先する
+
+	if ('スキル：練達' in tona_skills) {
+		return false;
+	}
+
+	if (SkillControl.getBattleSkillFromFlag(passive, active, SkillType.INVALID, InvalidFlag.EFFECTIVE) !== null) {
+		return false;
+	}
+
+	// 「必中：特効」を判定
+	if (trueHitValue === TrueHitValue.EFFECTIVE) {
+		return true;
+	}
+
+	// 相手のユニットに対して、アイテムが特攻であるか調べる
+	if (ItemControl.isEffectiveData(passive, weapon)) {
+		return true;
+	}
+
+	return false;
+}
 
 // *****************************************************************************************************************************
 // 通常戦闘：ダメージ計算
@@ -244,9 +276,6 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 		}
 	}
 
-	// 特効かどうか調べる
-	attackEntry.isEffective = this.isEffective(virtualActive, virtualPassive, attackEntry);
-
 	// クリティカルかどうか調べる
 	attackEntry.isCritical = this.isCritical(virtualActive, virtualPassive, attackEntry);
 
@@ -254,46 +283,6 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 	attackEntry.damagePassive = this.calculateDamage(virtualActive, virtualPassive, attackEntry);
 
 	this._checkStateAttack(virtualActive, virtualPassive, attackEntry);
-};
-
-// *****************************************************************************************************************************
-// 通常戦闘：ダメージ計算：特効かを調べる
-// -----------------------------------------------------------------------------------------------------------------------------
-
-AttackEvaluator.HitCritical.isEffective = function(virtualActive, virtualPassive, attackEntry) {
-
-	// 練達：必殺、特効を無効にする
-	if (this._tona_skills['スキル：練達']) {
-		return false;
-	}
-
-	return DamageCalculator.isEffective(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, this._tona_trueHitValue);
-};
-
-// *****************************************************************************************************************************
-// 通常戦闘：ダメージ計算：クリティカルかを調べる
-// -----------------------------------------------------------------------------------------------------------------------------
-
-AttackEvaluator.HitCritical.isCritical = function(virtualActive, virtualPassive, attackEntry) {
-
-	// 練達：必殺、特効を無効にする
-	if (this._tona_skills['スキル：練達']) {
-		return false;
-	}
-
-	// 反撃クリティカルによるクリティカル発動
-	// これの判定がここにあるせいで発動演出出ないですね…？
-	if (!virtualActive.isInitiative && SkillControl.checkAndPushSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, SkillType.COUNTERATTACKCRITICAL) !== null) {
-		return true;
-	}
-
-	// 勇敢：自身から攻撃したときにクリティカルになる
-	if (this._tona_skills['スキル：勇敢']) {
-		return true;
-	}
-
-	// クリティカルが出るかどうかは確率で計算
-	return this.calculateCritical(virtualActive, virtualPassive, attackEntry);
 };
 
 // *****************************************************************************************************************************
@@ -312,6 +301,32 @@ AttackEvaluator.HitCritical.calculateDamage = function(virtualActive, virtualPas
 	}
 
 	return DamageCalculator.calculateDamage(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, virtualActive.totalStatus, virtualPassive.totalStatus, this._tona_trueHitValue, attackEntry.isEffective, this._tona_skills);
+};
+
+// *****************************************************************************************************************************
+// 通常戦闘：ダメージ計算：クリティカルかを調べる
+// -----------------------------------------------------------------------------------------------------------------------------
+
+AttackEvaluator.HitCritical.isCritical = function(virtualActive, virtualPassive, attackEntry) {
+
+	// 練達：必殺、特効を無効にする
+	if ('スキル：練達' in this._tona_skills) {
+		return false;
+	}
+
+	// 反撃クリティカルによるクリティカル発動
+	// これの判定がここにあるせいで、回避されたときに発動演出が出ないかも…？
+	if (!virtualActive.isInitiative && SkillControl.checkAndPushSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, SkillType.COUNTERATTACKCRITICAL) !== null) {
+		return true;
+	}
+
+	// 勇敢：自身から攻撃したときにクリティカルになる
+	if ('スキル：勇敢' in this._tona_skills) {
+		return true;
+	}
+
+	// クリティカルが出るかどうかは確率で計算
+	return this.calculateCritical(virtualActive, virtualPassive, attackEntry);
 };
 
 // *****************************************************************************************************************************
