@@ -12,6 +12,13 @@
 // カスタムフラグコントロール
 // -----------------------------------------------------------------------------------------------------------------------------
 
+var tona_CustomFlag = {
+	__dummy: null
+
+	, canCritical: 'tona_canCritical'
+	, canRoundAttack: 'tona_canRoundAttack'
+};
+
 var tona_CustomFlagControl = {
 
 	// *****************************************************************************************************************************
@@ -44,6 +51,7 @@ var tona_CustomFlagControl = {
 		if (objectFlag & ObjectFlag.ITEM) {
 			var count = UnitItemControl.getPossessionItemCount(unit);
 			for (var i = 0; i < count; i++) {
+				var checkerArray = [];
 				var item = UnitItemControl.getItem(unit, i);
 				if (!ItemIdentityChecker.isItemReused(checkerArray, item)) {
 					continue;

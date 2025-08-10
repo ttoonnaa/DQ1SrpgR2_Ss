@@ -53,6 +53,58 @@ AbilityCalculator.getCriticalAvoid = function(unit, weapon) {
 };
 
 // *****************************************************************************************************************************
+// クリティカル許可判定
+// -----------------------------------------------------------------------------------------------------------------------------
+
+Miscellaneous.isCriticalAllowed = function(active, passive) {
+	var option = root.getMetaSession().getDifficulty().getDifficultyOption();
+
+	// クリティカルが許可されている
+	if (option & DifficultyFlag.CRITICAL) {
+		return true;
+	}
+
+	// クリティカル可能スキルを持っている
+	if (SkillControl.getBattleSkill(active, passive, SkillType.CRITICAL) !== null) {
+		return true;
+	}
+
+	// クリティカル可能フラグを持っている
+	var objectFlag = ObjectFlag.UNIT | ObjectFlag.CLASS | ObjectFlag.WEAPON | ObjectFlag.ITEM | ObjectFlag.SKILL | ObjectFlag.STATE | ObjectFlag.TERRAIN | ObjectFlag.FUSION;
+	if (tona_CustomFlagControl.isCustomFlag(active, ItemControl.getEquippedWeapon(active), objectFlag, tona_CustomFlag.canCritical)) {
+		return true;
+	}
+
+	return false;
+};
+
+// *****************************************************************************************************************************
+// 追撃許可判定
+// -----------------------------------------------------------------------------------------------------------------------------
+
+Calculator.isRoundAttackAllowed = function(active, passive) {
+	var option = root.getMetaSession().getDifficulty().getDifficultyOption();
+
+	// 追撃が許可されている
+	if (option & DifficultyFlag.ROUNDATTACK) {
+		return true;
+	}
+
+	// 追撃可能スキルを持っている
+	if (SkillControl.getBattleSkill(active, passive, SkillType.ROUNDATTACK) !== null) {
+		return true;
+	}
+
+	// 追撃可能フラグを持っている
+	var objectFlag = ObjectFlag.UNIT | ObjectFlag.CLASS | ObjectFlag.WEAPON | ObjectFlag.ITEM | ObjectFlag.SKILL | ObjectFlag.STATE | ObjectFlag.TERRAIN | ObjectFlag.FUSION;
+	if (tona_CustomFlagControl.isCustomFlag(active, ItemControl.getEquippedWeapon(active), objectFlag, tona_CustomFlag.canRoundAttack)) {
+		return true;
+	}
+
+	return false;
+};
+
+// *****************************************************************************************************************************
 // 攻撃回数を計算する
 // -----------------------------------------------------------------------------------------------------------------------------
 
@@ -146,7 +198,7 @@ ExperienceCalculator._getExperience = function(data, baseExp) {
 	// ★改造：大きく改造する、レベル差の影響を大きくする
 
 	var exp = baseExp;
-	var diff = z_UnitControl.getInnerLevel(data.passive) - z_UnitControl.getInnerLevel(data.active);
+	var diff = tona_UnitControl.getInnerLevel(data.passive) - tona_UnitControl.getInnerLevel(data.active);
 
 	if (data.passiveHp > 0) {
 
