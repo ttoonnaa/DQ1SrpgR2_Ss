@@ -150,7 +150,7 @@ NormalAttackOrderBuilder._getAttackCount = function(virtualActive, virtualPassiv
 // ダメージの計算
 // -----------------------------------------------------------------------------------------------------------------------------
 
-DamageCalculator.calculateAttackPower = function(active, passive, weapon, isCritical, totalStatus, trueHitValue) {
+DamageCalculator.calculateAttackPower = function(active, passive, weapon, isCritical, totalStatus, trueHitValue, tona_skills) {
 
 	var pow = AbilityCalculator.getPower(active, weapon) + CompatibleCalculator.getPower(active, passive, weapon) + SupportCalculator.getPower(totalStatus);
 
@@ -174,7 +174,7 @@ DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical,
 		return -1;
 	}
 
-	pow = this.calculateAttackPower(active, passive, weapon, isCritical, activeTotalStatus, trueHitValue);
+	pow = this.calculateAttackPower(active, passive, weapon, isCritical, activeTotalStatus, trueHitValue, tona_skills);
 	def = this.calculateDefense(active, passive, weapon, isCritical, passiveTotalStatus, trueHitValue);
 
 	// スキルの計算は calculateAttackPower や calculateDefense でやる方法もある（trueHitValue はそうしてる）
@@ -200,14 +200,21 @@ DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical,
 };
 
 // *****************************************************************************************************************************
-// ダメージの計算：通常戦闘
+// 通常戦闘：ダメージ計算
 // -----------------------------------------------------------------------------------------------------------------------------
 
 AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtualPassive, attackEntry) {
+	var trueHitValue = 0;
 
+	// 必中スキルを調べておく（特効などの情報も含んでいる）
 	this._skill = SkillControl.checkAndPushSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, SkillType.TRUEHIT);
+	if (this._skill !== null) {
+		trueHitValue = this._skill.getSkillValue();
+	}
 
-	// ★追加：tona_skills の発動判定
+	// tona_skills のうち、必ず発動判定を行うものをここで処理する
+	// 命中しなくてもスキル発動演出は行うことに注意
+
 	this._tona_skills = {};
 	this._tona_skills['スキル：月光'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：月光']);
 
@@ -216,36 +223,79 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 		this._tona_skills['スキル：勇敢'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：勇敢']);
 	}
 
+	// 防御側のスキル
+	this._tona_skills['スキル：練達'] = SkillControl.checkAndPushCustomSkill(virtualPassive.unitSelf, virtualActive.unitSelf, attackEntry, false, tona_Keyword['スキル：練達']);
+
 	// 攻撃が命中するかどうかを調べる
 	attackEntry.isHit = this.isHit(virtualActive, virtualPassive, attackEntry);
 	if (!attackEntry.isHit) {
-		if (this._skill === null) {
-			// 攻撃が命中せず、スキルも発動しないため続行しない
+
+		// スキル：必中が発動していれば攻撃は命中する
+		if (this._skill !== null) {
+			attackEntry.isHit = true;
+		}
+
+		// 最終的に命中しなかった場合はここで終わり
+		if (!attackEntry.isHit) {
 			return;
 		}
-
-		// スキルは発動しているため、攻撃は命中する
-		attackEntry.isHit = true;
 	}
+
+	// 特効かどうか調べる
+	attackEntry.isEffective = this.isEffective(virtualActive, virtualPassive, attackEntry, trueHitValue);
 
 	// クリティカルかどうか調べる
-	attackEntry.isCritical = this.isCritical(virtualActive, virtualPassive, attackEntry);
-	if (!attackEntry.isCritical) {
-
-		// クリティカルのスキル判定まで↑の中でやってるのはどうなんだろう？
-		// tona_skills でのクリティカルはここで判定するよ
-
-		// ★勇敢：自身から攻撃したときにクリティカルになる
-		if (this._tona_skills['スキル：勇敢']) {
-			attackEntry.isCritical = true;
-		}
-	}
+	attackEntry.isCritical = this.isCritical(virtualActive, virtualPassive, attackEntry, trueHitValue);
 
 	// 与えるダメージを計算する
 	attackEntry.damagePassive = this.calculateDamage(virtualActive, virtualPassive, attackEntry);
 
 	this._checkStateAttack(virtualActive, virtualPassive, attackEntry);
 };
+
+// *****************************************************************************************************************************
+// 通常戦闘：ダメージ計算：特効かを調べる
+// -----------------------------------------------------------------------------------------------------------------------------
+
+AttackEvaluator.HitCritical.isEffective = function(virtualActive, virtualPassive, attackEntry, trueHitValue) {
+
+	// 練達：必殺、特効を無効にする
+	if (this._tona_skills['スキル：練達']) {
+		return false;
+	}
+
+	return DamageCalculator.isEffective(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, trueHitValue);
+};
+
+// *****************************************************************************************************************************
+// 通常戦闘：ダメージ計算：クリティカルかを調べる
+// -----------------------------------------------------------------------------------------------------------------------------
+
+AttackEvaluator.HitCritical.isCritical = function(virtualActive, virtualPassive, attackEntry, trueHitValue) {
+
+	// 練達：必殺、特効を無効にする
+	if (this._tona_skills['スキル：練達']) {
+		return false;
+	}
+
+	// 反撃クリティカルによるクリティカル発動
+	// これの判定がここにあるせいで発動演出出ないですね…？
+	if (!virtualActive.isInitiative && SkillControl.checkAndPushSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, SkillType.COUNTERATTACKCRITICAL) !== null) {
+		return true;
+	}
+
+	// 勇敢：自身から攻撃したときにクリティカルになる
+	if (this._tona_skills['スキル：勇敢']) {
+		return true;
+	}
+
+	// クリティカルが出るかどうかは確率で計算
+	return this.calculateCritical(virtualActive, virtualPassive, attackEntry);
+};
+
+// *****************************************************************************************************************************
+// 通常戦闘：ダメージ計算：ダメージを計算
+// -----------------------------------------------------------------------------------------------------------------------------
 
 AttackEvaluator.HitCritical.calculateDamage = function(virtualActive, virtualPassive, attackEntry) {
 	var trueHitValue = 0;
@@ -265,6 +315,7 @@ AttackEvaluator.HitCritical.calculateDamage = function(virtualActive, virtualPas
 
 	return DamageCalculator.calculateDamage(virtualActive.unitSelf, virtualPassive.unitSelf, virtualActive.weapon, attackEntry.isCritical, virtualActive.totalStatus, virtualPassive.totalStatus, trueHitValue, this._tona_skills);
 };
+
 
 // *****************************************************************************************************************************
 // 経験値計算機

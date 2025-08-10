@@ -91,7 +91,7 @@ var tona_SceneControl = {
 
 		// エネミー情報を取得
 		var masterEnemy = Master.enemy;
-		var level = 1;
+		var level = 40;
 
 		// クラス情報を取得
 		var klassId = unit.getClass().getId();
