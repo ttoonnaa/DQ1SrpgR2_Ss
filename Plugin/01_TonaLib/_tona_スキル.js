@@ -16,6 +16,7 @@ var tona_Keyword = {
 
 	, 'スキル：月光': 'tona_スキル：月光'
 	, 'スキル：勇敢': 'tona_スキル：勇敢'
+	, 'スキル：神速': 'tona_スキル：神速'
 	, 'スキル：滅殺': 'tona_スキル：滅殺'
 	, 'スキル：大盾': 'tona_スキル：大盾'
 	, 'スキル：練達': 'tona_スキル：練達'
@@ -33,4 +34,14 @@ SkillRandomizer.isCustomSkillInvokedInternal = function(active, passive, skill, 
 	return this._isSkillInvokedInternal(active, passive, skill);
 };
 
+// *****************************************************************************************************************************
+// バトルスキルを取得
+//		getBattleSkill の Custom 版がなかったのでここで実装
+// -----------------------------------------------------------------------------------------------------------------------------
 
+SkillControl.tona_getBattleCustomSkill = function(active, passive, keyword) {
+	var arr = this.getDirectSkillArray(active, SkillType.CUSTOM, keyword);
+	var skill = this._returnSkill(SkillType.CUSTOM, arr);
+
+	return this._getBattleSkillInternal(active, passive, skill);
+};

@@ -126,7 +126,7 @@ Calculator.calculateRoundCount = function(active, passive, weapon) {
 };
 
 // *****************************************************************************************************************************
-// 攻撃回数を計算する
+// 通常攻撃：攻撃回数を計算する
 // -----------------------------------------------------------------------------------------------------------------------------
 
 NormalAttackOrderBuilder._getAttackCount = function(virtualActive, virtualPassive) {
@@ -135,6 +135,7 @@ NormalAttackOrderBuilder._getAttackCount = function(virtualActive, virtualPassiv
 
 	skill = SkillControl.getBattleSkill(virtualActive.unitSelf, virtualPassive.unitSelf, SkillType.CONTINUOUSATTACK);
 	if (SkillRandomizer.isSkillInvoked(virtualActive.unitSelf, virtualPassive.unitSelf, skill)) {
+
 		// 連続攻撃のスキルによって攻撃回数が倍になる
 		attackCount *= skill.getSkillValue();
 

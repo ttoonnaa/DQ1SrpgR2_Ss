@@ -56,7 +56,7 @@ var tona_SceneControl = {
 		// プレイヤー情報を取得
 		var unitId = tona_UnitControl.getPlayerId(unit);
 		var masterPlayer = Master.playerById[unitId];
-		var level = 40;
+		var level = 1;
 
 		// クラス情報を取得
 		var klassId = unit.getClass().getId();
@@ -91,7 +91,7 @@ var tona_SceneControl = {
 
 		// エネミー情報を取得
 		var masterEnemy = Master.enemy;
-		var level = 40;
+		var level = 1;
 
 		// クラス情報を取得
 		var klassId = unit.getClass().getId();
@@ -134,13 +134,20 @@ var tona_SceneControl = {
 	// -----------------------------------------------------------------------------------------------------------------------------
 	, _setupAlly: function(unit) {
 
-		// セットアップ済みなら何もしない
-		if (unit.custom.tona_isSetupDone > 0) { return; }
+		// プレイヤーを同盟軍として登場させた場合
+		if (unit.getImportSrcId() >= 0) {
+			this._setupPlayer(unit);
+		}
+		else {
 
-		root.log('セットアップ: ' + unit.getName());
+			// セットアップ済みなら何もしない
+			if (unit.custom.tona_isSetupDone > 0) { return; }
 
-		// セットアップ済みにする
-		unit.custom.tona_isSetupDone = 1;
+			root.log('セットアップ: ' + unit.getName());
+
+			// セットアップ済みにする
+			unit.custom.tona_isSetupDone = 1;
+		}
 	}
 };
 
