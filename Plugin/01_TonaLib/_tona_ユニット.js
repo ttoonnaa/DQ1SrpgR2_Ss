@@ -98,6 +98,37 @@ var tona_UnitControl = { __dummy: null
 
 		return null;
 	}
+
+	// *****************************************************************************************************************************
+	// 顔グラを更新する
+	// -----------------------------------------------------------------------------------------------------------------------------
+	, updateFace: function(unit) {
+
+		var faceIndex = 0;		// 通常
+
+		// 参照しているプレイヤーのIDを取得する
+		var refPlayerId = this.getRefPlayerId(unit);
+
+		// プレイヤーを参照している場合の顔グラ
+		if (refPlayerId >= 0) {
+
+			// 参照タイプによってインデックスを変更
+			if (unit.custom.tona_refType == tona_RefType.Modoki) {
+				faceIndex = 0;
+			}
+			else if (unit.custom.tona_refType == tona_RefType.Slime) {
+				faceIndex = 4;
+			}
+			else if (unit.custom.tona_refType == tona_RefType.Shadow) {
+				faceIndex = 5;
+			}
+
+			var masterPlayer = Master.playerById[refPlayerId];
+			var imageId = masterPlayer.images[faceIndex];
+			var imageHandle = tona_Utility.getFaceImageHandle(false, imageId);
+			unit.setFaceResourceHandle(imageHandle);
+		}
+	}
 };
 
 

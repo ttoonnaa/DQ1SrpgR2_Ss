@@ -78,6 +78,9 @@ var game_SceneControl = { __dummy: null
 		// HPを設定
 		unit.setHp(ParamBonus.getMhp(unit));
 
+		// 顔グラを設定
+		tona_UnitControl.updateFace(unit);
+
 		// セットアップ済みにする
 		unit.custom.tona_isSetupDone = 1;
 	}
