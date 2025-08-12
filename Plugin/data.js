@@ -388,7 +388,7 @@ var Master = {
 			, weapons: [25], items: []
 		}
 		, {
-			klassId: 76		// ドロル
+			klassId: 120	// ドロル
 			, params: [22, 0, 4, 2, 5, 3, 5, 4, 0, 0, 6], growths: [65, 0, 25, 15, 30, 20, 30, 25, 0, 0, 10]
 			, weapons: [25], items: []
 		}

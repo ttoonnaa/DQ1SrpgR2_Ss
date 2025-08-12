@@ -15,8 +15,7 @@
 // カスタムフラグ
 // -----------------------------------------------------------------------------------------------------------------------------
 
-var tona_CustomFlag = {
-	__dummy: null
+var tona_CustomFlag = { __dummy: null
 
 	, canCritical: 'tona_canCritical'
 	, canRoundAttack: 'tona_canRoundAttack'
