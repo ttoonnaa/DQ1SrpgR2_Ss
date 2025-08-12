@@ -26,7 +26,7 @@ function Gf_InitStage() {
 	root.log('Gf_InitStage');
 
 	// ステージをセットアップする
-	tona_SceneControl.setupStage();
+	game_SceneControl.setupStage();
 }
 
 // *****************************************************************************************************************************
@@ -38,7 +38,7 @@ function Gf_UpdateStage() {
 	root.log('Gf_UpdateStage');
 
 	// ステージのユニットをセットアップする
-	tona_SceneControl.setupStageUnit();
+	game_SceneControl.setupStageUnit();
 }
 
 // *****************************************************************************************************************************
