@@ -129,16 +129,16 @@
 //--------------------------------------------------------------------------
 
 // 立ち絵表示X座標（立ち絵を表示するX座標です。X座標を変えたい時は数値を変えてください）
-var ExpPicture_X = 350;
-//var ExpPicture_X = StatusPicture_X;	// 立ち絵をステータス画面と同じ位置に表示したい時はこちらを有効にしてください
+//var ExpPicture_X = 350;
+var ExpPicture_X = StatusPicture_X;	// 立ち絵をステータス画面と同じ位置に表示したい時はこちらを有効にしてください
 
 // 立ち絵表示Y座標（立ち絵を表示するY座標です。Y座標を変えたい時は数値を変えてください）
-var ExpPicture_Y = 0;
-//var ExpPicture_Y = StatusPicture_Y;	// 立ち絵をステータス画面と同じ位置に表示したい時はこちらを有効にしてください
+//var ExpPicture_Y = 0;
+var ExpPicture_Y = StatusPicture_Y;	// 立ち絵をステータス画面と同じ位置に表示したい時はこちらを有効にしてください
 
 
 // LVUPウィンドウの表示X座標補正値（ウィンドウのX座標を補正できます。X座標を変えたい時は数値を変えてください）
-var ExpWindow_Hosei_X = 0;
+var ExpWindow_Hosei_X = -160;//0;
 
 // LVUPウィンドウの表示Y座標補正値（ウィンドウのY座標を補正できます。Y座標を変えたい時は数値を変えてください）
 var ExpWindow_Hosei_Y = 0;

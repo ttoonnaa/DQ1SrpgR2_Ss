@@ -256,17 +256,17 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 	// tona_skills のうち、必ず発動判定を行うものをここで処理する
 	// 命中しなくてもスキル発動演出は行うことに注意
 
-	this._tona_skills['スキル：月光'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：月光']);
-	this._tona_skills['スキル：滅殺'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：滅殺']);
+	this._tona_skills['スキル：月光'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_SkillKeyword['スキル：月光']);
+	this._tona_skills['スキル：滅殺'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_SkillKeyword['スキル：滅殺']);
 
 	// 自分から攻撃した場合に発動するスキル
 	if (virtualActive.isInitiative) {
-		this._tona_skills['スキル：勇敢'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_Keyword['スキル：勇敢']);
+		this._tona_skills['スキル：勇敢'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_SkillKeyword['スキル：勇敢']);
 	}
 
 	// 防御側のスキル
-	this._tona_skills['スキル：大盾'] = SkillControl.checkAndPushCustomSkill(virtualPassive.unitSelf, virtualActive.unitSelf, attackEntry, false, tona_Keyword['スキル：大盾']);
-	this._tona_skills['スキル：練達'] = SkillControl.checkAndPushCustomSkill(virtualPassive.unitSelf, virtualActive.unitSelf, attackEntry, false, tona_Keyword['スキル：練達']);
+	this._tona_skills['スキル：大盾'] = SkillControl.checkAndPushCustomSkill(virtualPassive.unitSelf, virtualActive.unitSelf, attackEntry, false, tona_SkillKeyword['スキル：大盾']);
+	this._tona_skills['スキル：練達'] = SkillControl.checkAndPushCustomSkill(virtualPassive.unitSelf, virtualActive.unitSelf, attackEntry, false, tona_SkillKeyword['スキル：練達']);
 
 	// 攻撃が命中するかどうかを調べる
 	attackEntry.isHit = this.isHit(virtualActive, virtualPassive, attackEntry);

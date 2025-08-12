@@ -53,10 +53,14 @@ var tona_SceneControl = {
 
 		root.log('セットアップ: ' + unit.getName());
 
+		// セッションからマップ情報を取得
+		var mapInfo = root.getCurrentSession().getCurrentMapInfo();
+		var map = Master.mapById[mapInfo.getId()];
+
 		// プレイヤー情報を取得
 		var unitId = tona_UnitControl.getPlayerId(unit);
 		var masterPlayer = Master.playerById[unitId];
-		var level = 1;
+		var level = map.level;
 
 		// クラス情報を取得
 		var klassId = unit.getClass().getId();
@@ -89,9 +93,13 @@ var tona_SceneControl = {
 
 		root.log('セットアップ: ' + unit.getName());
 
+		// セッションからマップ情報を取得
+		var mapInfo = root.getCurrentSession().getCurrentMapInfo();
+		var map = Master.mapById[mapInfo.getId()];
+
 		// エネミー情報を取得
 		var masterEnemy = Master.enemy;
-		var level = 1;
+		var level = map.level;
 
 		// クラス情報を取得
 		var klassId = unit.getClass().getId();

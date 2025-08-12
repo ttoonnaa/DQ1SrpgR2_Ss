@@ -8,7 +8,7 @@ var __ScriptCall_Setup = ScriptCall_Setup;
 ScriptCall_Setup = function() {
 	__ScriptCall_Setup();
 
-	root.log('Gf_Setup')
+	root.log('Gf_Setup');
 
 	// マスターデータを初期化
 	Master.initialize();
@@ -23,22 +23,34 @@ ScriptCall_Setup = function() {
 
 function Gf_InitStage() {
 
-	root.log('Gf_InitStage')
+	root.log('Gf_InitStage');
 
 	// ステージをセットアップする
 	tona_SceneControl.setupStage();
 }
 
 // *****************************************************************************************************************************
-// セットアップ
+// ステージ更新
 // -----------------------------------------------------------------------------------------------------------------------------
 
-function Gf_SetupStageUnit() {
+function Gf_UpdateStage() {
 
-	root.log('Gf_SetupStageUnit')
+	root.log('Gf_UpdateStage');
 
 	// ステージのユニットをセットアップする
 	tona_SceneControl.setupStageUnit();
+}
+
+// *****************************************************************************************************************************
+// エネミーターン
+// -----------------------------------------------------------------------------------------------------------------------------
+
+function Gf_EnemyTurn() {
+
+	root.log('Gf_EnemyTurn');
+
+	// アクティブグループを更新する
+	tona_ActiveGroupControl.update();
 }
 
 
