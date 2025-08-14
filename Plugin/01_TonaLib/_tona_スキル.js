@@ -38,3 +38,49 @@ SkillControl.tona_getBattleCustomSkill = function(active, passive, keyword) {
 
 	return this._getBattleSkillInternal(active, passive, skill);
 };
+
+// *****************************************************************************************************************************
+// ランダムスキル取得コントロール
+// -----------------------------------------------------------------------------------------------------------------------------
+
+var tona_RandomSkillControl = { __dummy: null
+
+	, createSkillArray: function(unit) {
+
+		// 確率で覚える
+		if (Probability.getProbability(Master.randomSkillProbability)) {
+
+			// 既にそのスキルを持っていた場合、再抽選などはしない
+			// つまりスキルを多く持っていると新しく覚える確率は低くなる
+			// 調べるのはユニットの追加スキルのみなのでクラススキルなどと重複する可能性はある
+
+			var skillId = Master.randomSkillIds[root.getRandomNumber() % Master.randomSkillIds.length];
+			var skill = root.getBaseData().getSkillList().getDataFromId(skillId);
+			var list = unit.getSkillReferenceList();
+			var count = list.getTypeCount();
+
+			for (var i = 0; i < count; i++) {
+				if (list.getTypeData(i) === skill) {
+					return [];
+				}
+			}
+
+			return [skill];
+		}
+
+		return [];
+	}
+
+	, obtainSkillArray: function(unit, skillArray) {
+		var count = skillArray.length;
+
+		for (var i = 0; i < count; i++) {
+			var skill = skillArray[i];
+			SkillChecker.arrangeSkill(unit, skill, IncreaseType.INCREASE);
+		}
+	}
+};
+
+
+
+

@@ -3,7 +3,7 @@
 // PreAttack
 // -----------------------------------------------------------------------------------------------------------------------------
 //		復活の石の処理
-//		一攫千金の処理
+//		金運の処理
 // -----------------------------------------------------------------------------------------------------------------------------
 
 var tona_PreAttack_pushFlowEntriesStart = PreAttack._pushFlowEntriesStart;
@@ -17,7 +17,7 @@ var tona_PreAttack_pushFlowEntriesEnd = PreAttack._pushFlowEntriesEnd;
 
 PreAttack._pushFlowEntriesEnd = function(straightFlow) {
 
-	// ★追加：「スキル：一攫千金」の処理を追加
+	// ★追加：「スキル：金運」の処理を追加
 	straightFlow.pushFlowEntry(tona_RichQuickEndFlow);
 
 	tona_PreAttack_pushFlowEntriesEnd.call(this, straightFlow);
