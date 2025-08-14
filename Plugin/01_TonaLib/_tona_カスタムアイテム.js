@@ -11,7 +11,7 @@ var tona_CustomItemControl = { __dummy: null
 
         this.customItem = { __dummy: null
 
-            , 'シェイプコピー': [
+            , 'tona_アイテム：シェイプコピー': [
                 tona_ShapeCopyItemSelection,
                 tona_ShapeCopyItemUse,
                 tona_ShapeCopyItemInfo,
@@ -19,7 +19,7 @@ var tona_CustomItemControl = { __dummy: null
                 tona_ShapeCopyItemAvailability,
                 tona_ShapeCopyItemAI
             ]
-        }
+        };
     }
 };
 

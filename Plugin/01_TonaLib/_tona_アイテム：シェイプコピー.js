@@ -83,7 +83,7 @@ var tona_ShapeCopyItemControl = { __dummy: null
 
 		// セッションからマップ情報を取得
 		var mapInfo = root.getCurrentSession().getCurrentMapInfo();
-		var map = z_master.mapById[mapInfo.getId()];
+		var map = Master.mapById[mapInfo.getId()];
 
 		// ターゲット情報を取得
 	    var targetUnitId = targetUnit.getId();
@@ -126,11 +126,11 @@ var tona_ShapeCopyItemControl = { __dummy: null
 		// HP
 		unit.setHp(ParamBonus.getMhp(unit));
 
-		// スライムフラグを立てる
-		//z_UnitControl.setRefUnit(unit, targetUnit.getId(), z_RefType.Slime);
+		// 参照プレイヤーを設定する
+		tona_UnitControl.setRefPlayerId(unit, tona_RefType.Slime, targetUnitId);
 
 		// 顔グラを更新する
-		//z_UnitControl.updateFace(unit);
+		tona_UnitControl.updateFace(unit);
 	}
 };
 

@@ -14,7 +14,7 @@ ScriptCall_Setup = function() {
 	Master.initialize();
 
 	// カスタムアイテムを初期化
-	//z_CustomItemController.initialize();
+	tona_CustomItemControl.initialize();
 }
 
 // *****************************************************************************************************************************
