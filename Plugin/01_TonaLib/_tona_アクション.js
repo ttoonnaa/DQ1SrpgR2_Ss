@@ -175,6 +175,72 @@ CombinationCollector.Item._isItemEnabled = function(unit, item, misc) {
 }
 
 // *****************************************************************************************************************************
+// スコアラー
+// -----------------------------------------------------------------------------------------------------------------------------
+
+CombinationSelector._getBestCostIndex = function(unit, combination) {
+	var i, count, totalScore, costData;
+	var scoreArray = [];
+
+	// 第2ステージの処理に必要なオブジェクトを用意する。
+	// 第1ステージでは武器と相手を決定しているが、
+	// その相手にどの位置から攻撃するかまでは決定していない。
+	// 第2ステージでは、その位置を決定する。
+	this._scorerArray = [];
+
+	// ★追加：その場で使うアイテムの処理
+	if (combination.item != null && combination.item.custom.tona_useOnSpot) {
+		this._tona_configureScorerSecondForUseOnSpot(this._scorerArray);
+	}
+	else {
+		this._configureScorerSecond(this._scorerArray);
+	}
+
+	// combination.costArrayは、攻撃可能な位置を格納した配列であるため、その数だけループする
+	count = combination.costArray.length;
+	for (i = 0; i < count; i++) {
+		// _getTotalScoreの内部処理のため、位置と消費移動力を一時的に設定する。
+		costData = combination.costArray[i];
+		combination.posIndex = costData.posIndex;
+		combination.movePoint = costData.movePoint;
+		
+		totalScore = this._getTotalScore(unit, combination);
+		scoreArray.push(totalScore);
+	}
+
+	return this._getBestIndexFromScore(scoreArray);
+};
+
+CombinationSelector._tona_configureScorerSecondForUseOnSpot = function(groupArray) {
+
+	groupArray.appendObject(AIScorer.tona_UseOnSpot);
+};
+
+// *****************************************************************************************************************************
+// その場で使うアイテムのスコアラー
+// -----------------------------------------------------------------------------------------------------------------------------
+//		動かずにその場で使うアイテムの優先度を設定
+//		回避地形などを考慮せず、movePoint == 0 なもののみを採用する
+// -----------------------------------------------------------------------------------------------------------------------------
+
+AIScorer.tona_UseOnSpot = defineObject(BaseAIScorer, { __dummy: null
+
+	, getScore: function(unit, combination) {
+
+		if (combination.targetUnit == null) {
+			return 0;
+		}
+
+		if (combination.movePoint > 0) {
+			return 0;
+		}
+
+		// 他のスコアに影響が出ないように1未満の値を設定
+		return 0.1;
+	}
+});
+
+// *****************************************************************************************************************************
 // アクションコントローラー
 // -----------------------------------------------------------------------------------------------------------------------------
 
