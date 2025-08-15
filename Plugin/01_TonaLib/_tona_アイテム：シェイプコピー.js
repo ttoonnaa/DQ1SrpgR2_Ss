@@ -69,7 +69,7 @@ var tona_ShapeCopyItemAI = defineObject(BaseItemAI, {
 			return -1;
 		}
 
-        return tona_AiControl.getMaxRandomScoreWithLevel(combination.targetUnit);
+        return tona_ActionControl.getMaxRandomScoreWithLevel(combination.targetUnit);
     }
 });
 

@@ -7,12 +7,11 @@ var tona_ActiveGroupControl = {
 
 	update: function() {
 
+		// 一部のアイテムをアクティブ判定から除外するためのフラグ
+		tona_Temp.disableEntireWeapon = true;
+
 		var enemyList = root.getCurrentSession().getEnemyList();
 		var enemyCount = enemyList.getCount();
-
-		// 全域武器を一時的に無効にする
-		//__Data.disableEntireWeapon = 1;
-
 		var isGroupActive = [];
 
 		// グループのユニットが１体でもアクティブならグループ自体をアクティブにする
@@ -26,7 +25,7 @@ var tona_ActiveGroupControl = {
 
 				// 現在位置から攻撃可能なユニットの中で、最も優れた組み合わせを取得する
 				if (enemy.createAIPattern()) {
-					var combination = tona_AiControl.getCombination(enemy);
+					var combination = tona_ActionControl.getCombination(enemy);
 					if (combination !== null) {
 						isGroupActive[enemyGroupId] = 1;
 					}
@@ -52,44 +51,8 @@ var tona_ActiveGroupControl = {
 			}
 		}
 
-		//__Data.disableEntireWeapon = 0;
+		// 一部のアイテムをアクティブ判定から除外するためのフラグ
+		tona_Temp.disableEntireWeapon = false;
 	}
 };
-
-// *****************************************************************************************************************************
-// エネミーターン：オートアクションを作成
-// -----------------------------------------------------------------------------------------------------------------------------
-
-EnemyTurn._createAutoAction = function() {
-	var keyword;
-	var patternType = this._orderUnit.getAIPattern().getPatternType();
-
-	this._autoActionArray = [];
-
-    // ★追加：グループが非アクティブなら行動しない
-    if (this._orderUnit.custom.tona_unitGroupId > 0) {
-    	if (this._orderUnit.custom.tona_isGroupActive == 0) {
-			AutoActionBuilder._buildEmptyAction();
-			return true;
-        }
-    }
-
-	if (patternType === PatternType.APPROACH) {
-		AutoActionBuilder.buildApproachAction(this._orderUnit, this._autoActionArray);
-	}
-	else if (patternType === PatternType.WAIT) {
-		AutoActionBuilder.buildWaitAction(this._orderUnit, this._autoActionArray);
-	}
-	else if (patternType === PatternType.MOVE) {
-		AutoActionBuilder.buildMoveAction(this._orderUnit, this._autoActionArray);
-	}
-	else if (patternType === PatternType.CUSTOM) {
-		keyword = this._orderUnit.getAIPattern().getCustomKeyword();
-		AutoActionBuilder.buildCustomAction(this._orderUnit, this._autoActionArray, keyword);
-	}
-
-	return true;
-};
-
-
 
