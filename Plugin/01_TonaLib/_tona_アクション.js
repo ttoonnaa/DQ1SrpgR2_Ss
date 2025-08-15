@@ -146,9 +146,41 @@ WeaponAutoAction._drawPosMenuShow = function() {
 	this._posMenu.drawWindowManager();
 };
 
-// ****************************************************************************************************
+// *****************************************************************************************************************************
+// WaitAutoAction
+// -----------------------------------------------------------------------------------------------------------------------------
+
+WaitAutoAction._pushFlowEntries = function(straightFlow) {
+
+	straightFlow.pushFlowEntry(UnitWaitFlowEntry);
+	straightFlow.pushFlowEntry(ReactionFlowEntry);
+
+	// ★追加：演出無しの再行動フロー
+	straightFlow.pushFlowEntry(tona_SilentReactionFlowEntry);
+};
+
+// *****************************************************************************************************************************
+// 演出無しの再行動フロー
+// -----------------------------------------------------------------------------------------------------------------------------
+
+var tona_SilentReactionFlowEntry = defineObject(BaseFlowEntry, {
+
+    enterFlowEntry: function(playerTurn) {
+        var unit = playerTurn.getTurnTargetUnit();
+
+		if (unit.custom.tona_silentReactionFlag) {
+			unit.custom.tona_silentReactionFlag = false;
+
+root.log('silentReactionFlag');
+			unit.setWait(false);
+			unit.setOrderMark(OrderMarkType.FREE);
+		}
+    }
+});
+
+// *****************************************************************************************************************************
 // アイテムの有効判定
-// ----------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------------------------------------
 
 CombinationCollector.Item._isItemEnabled = function(unit, item, misc) {
 

@@ -131,6 +131,9 @@ var tona_ShapeCopyItemControl = { __dummy: null
 
 		// 顔グラを更新する
 		tona_UnitControl.updateFace(unit);
+
+		// 再行動フラグを立てる
+		unit.custom.tona_silentReactionFlag = true;
 	}
 };
 
