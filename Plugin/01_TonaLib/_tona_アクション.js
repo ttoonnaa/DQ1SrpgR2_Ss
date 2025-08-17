@@ -171,7 +171,6 @@ var tona_SilentReactionFlowEntry = defineObject(BaseFlowEntry, {
 		if (unit.custom.tona_silentReactionFlag) {
 			unit.custom.tona_silentReactionFlag = false;
 
-root.log('silentReactionFlag');
 			unit.setWait(false);
 			unit.setOrderMark(OrderMarkType.FREE);
 		}

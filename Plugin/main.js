@@ -53,5 +53,18 @@ function Gf_EnemyTurn() {
 	tona_ActiveGroupControl.update();
 }
 
+// *****************************************************************************************************************************
+// 拠点初期化
+// -----------------------------------------------------------------------------------------------------------------------------
 
+function Gf_InitRest() {
+
+	root.log('Gf_InitRest');
+
+	// 拠点をセットアップする
+	game_SceneControl.setupRest();
+
+	var player = PlayerList.getAliveList().getData(0);
+	DamageControl.setDeathState(player);
+}
 
