@@ -63,8 +63,16 @@ function Gf_InitRest() {
 
 	// 拠点をセットアップする
 	game_SceneControl.setupRest();
-
-	var player = PlayerList.getAliveList().getData(0);
-	DamageControl.setDeathState(player);
 }
+
+// *****************************************************************************************************************************
+// 声を再生
+// -----------------------------------------------------------------------------------------------------------------------------
+
+function Gf_Voice(resId) {
+
+	tona_MediaControl.playVoice(resId);
+}
+
+
 

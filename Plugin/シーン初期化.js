@@ -80,8 +80,24 @@ var game_SceneControl = { __dummy: null
 	    // パラメーターを設定
 	    for (var pi = 0; pi <= 10; pi++) {
 			var value = masterPlayer.params[pi];
-			value += (masterPlayer.growths[pi] + masterKlass.growths[pi]) * (level - 1) / 100;
-			unit.setParamValue(pi, Math.floor(value + 0.5));
+
+			// ランダムに成長
+			for (var lv = 2; lv <= level; lv++) {
+				if (root.getRandomNumber() % 100 < masterPlayer.growths[pi] + masterKlass.growths[pi]) {
+					value++;
+				}
+			}
+
+			//value += (masterPlayer.growths[pi] + masterKlass.growths[pi]) * (level - 1) / 100;
+			unit.setParamValue(pi, value);
+		}
+
+		// スキルをランダムに取得
+		for (var lv = 2; lv <= level; lv++) {
+			var randomSkillArray = tona_RandomSkillControl.createSkillArray(unit);
+			if (randomSkillArray.length > 0) {
+				SkillChecker.arrangeSkill(unit, randomSkillArray[0], IncreaseType.INCREASE);
+			}
 		}
 
 		// HPを設定
@@ -111,6 +127,11 @@ var game_SceneControl = { __dummy: null
 		// エネミー情報を取得
 		var masterEnemy = Master.enemy;
 		var level = map.level;
+
+		// プレイヤーを参照している場合
+		if (unit.custom.tona_refType == tona_RefType.Enemy) {
+			masterEnemy = Master.playerById[unit.custom.tona_refId];
+		}
 
 		// クラス情報を取得
 		var klassId = unit.getClass().getId();

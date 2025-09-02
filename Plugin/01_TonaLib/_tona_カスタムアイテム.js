@@ -19,6 +19,14 @@ var tona_CustomItemControl = { __dummy: null
                 tona_ShapeCopyItemAvailability,
                 tona_ShapeCopyItemAI
             ]
+            , 'tona_アイテム：サモン': [
+                tona_SummonItemSelection,
+                tona_SummonItemUse,
+                tona_SummonItemInfo,
+                tona_SummonItemPotency,
+                tona_SummonItemAvailability,
+                tona_SummonItemAI
+            ]
         };
     }
 };

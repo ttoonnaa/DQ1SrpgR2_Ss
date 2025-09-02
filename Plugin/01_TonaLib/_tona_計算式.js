@@ -360,6 +360,7 @@ ExperienceCalculator._getExperience = function(data, baseExp) {
 
 		// レベルが相手より大きい場合は、その差だけ 40% ずつ増やす
 		if (diff > 0) {
+
 			for (var i = 0; i < diff; i++) {
 				exp *= 1.4;
 			}

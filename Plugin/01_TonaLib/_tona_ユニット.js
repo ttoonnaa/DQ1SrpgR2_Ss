@@ -75,7 +75,10 @@ var tona_UnitControl = { __dummy: null
 		if (refPlayerId >= 0) {
 
 			// 参照タイプによってインデックスを変更
-			if (unit.custom.tona_refType == tona_RefType.Modoki) {
+			if (unit.custom.tona_refType == tona_RefType.Enemy) {
+				faceIndex = 1;
+			}
+			else if (unit.custom.tona_refType == tona_RefType.Modoki) {
 				faceIndex = 0;
 			}
 			else if (unit.custom.tona_refType == tona_RefType.Slime) {

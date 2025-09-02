@@ -17,6 +17,9 @@ var tona_PreAttack_pushFlowEntriesEnd = PreAttack._pushFlowEntriesEnd;
 
 PreAttack._pushFlowEntriesEnd = function(straightFlow) {
 
+	// ★追加：復活の石の処理を追加
+	straightFlow.pushFlowEntry(tona_RevivalFlow);
+
 	// ★追加：「スキル：金運」の処理を追加
 	straightFlow.pushFlowEntry(tona_RichQuickEndFlow);
 
