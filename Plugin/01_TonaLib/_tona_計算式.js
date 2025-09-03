@@ -167,6 +167,19 @@ DamageCalculator.calculateDamage = function(active, passive, weapon, isCritical,
 	// ただ、atk / def に分離できない可能性も考え、tona_skills の計算はここで行う
 	// 中に入れてもいい気がしてきた。
 
+	if (tona_skills['スキル：華炎']) {
+		if (Miscellaneous.isPhysicsBattle(weapon)) {
+			pow += Math.floor(RealBonus.getMag(active) / 2);
+		}
+		else {
+			pow += Math.floor(RealBonus.getStr(active) / 2);
+		}
+	}
+
+	if (tona_skills['スキル：砂陣']) {
+		pow += Math.floor(RealBonus.getDef(active) / 2);
+	}
+
 	if (tona_skills['スキル：月光']) {
 		def = Math.floor(def / 2);
 	}
@@ -258,6 +271,9 @@ AttackEvaluator.HitCritical.evaluateAttackEntry = function(virtualActive, virtua
 
 	this._tona_skills['スキル：月光'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_SkillKeyword['スキル：月光']);
 	this._tona_skills['スキル：滅殺'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_SkillKeyword['スキル：滅殺']);
+	this._tona_skills['スキル：華炎'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_SkillKeyword['スキル：華炎']);
+	this._tona_skills['スキル：砂陣'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_SkillKeyword['スキル：砂陣']);
+	this._tona_skills['スキル：水鏡'] = SkillControl.checkAndPushCustomSkill(virtualActive.unitSelf, virtualPassive.unitSelf, attackEntry, true, tona_SkillKeyword['スキル：水鏡']);
 
 	// 自分から攻撃した場合に発動するスキル
 	if (virtualActive.isInitiative) {
