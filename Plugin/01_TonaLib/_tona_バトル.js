@@ -173,11 +173,11 @@ var tona_CriticalCutinFlowEntry = defineObject(BaseCutinFlowEntry,
 {
     _getCutinAnime: function(battleTable) {
 
-		var attackParam = AttackControl.getAttackParam();
-        var order = battleTable.getBattleObject().getAttackOrder();
+        var attackOrder = AttackControl.getAttackOrder();
+		var attackEntry = attackOrder.getCurrentEntry();
 
         // ▲カットインを出してみる
-        if (order.getCurrentIndex() == 0) {
+        if (attackEntry.isCritical) {
 
             var animeList = root.getBaseData().getEffectAnimationList(false);
             var animeData = animeList.getDataFromId(tona_Setting.criticalCutinAnimeId);
