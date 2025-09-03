@@ -26,4 +26,40 @@ PreAttack._pushFlowEntriesEnd = function(straightFlow) {
 	tona_PreAttack_pushFlowEntriesEnd.call(this, straightFlow);
 };
 
+// *****************************************************************************************************************************
+// RealBattleTable
+// -----------------------------------------------------------------------------------------------------------------------------
 
+var _RealBattleTable_pushFlowEntriesActionStart = RealBattleTable._pushFlowEntriesActionStart;
+
+RealBattleTable._pushFlowEntriesActionStart = function(straightFlow) {
+
+    // ★追加：クリティカルのカットインフロー
+    straightFlow.pushFlowEntry(tona_CriticalCutinFlowEntry);
+
+    _RealBattleTable_pushFlowEntriesActionStart.call(this, straightFlow);
+};
+
+// *****************************************************************************************************************************
+// クリティカルのカットインフロー
+// -----------------------------------------------------------------------------------------------------------------------------
+
+var tona_CriticalCutinFlowEntry = defineObject(BaseCutinFlowEntry,
+{
+    _getCutinAnime: function(battleTable) {
+
+		var attackParam = AttackControl.getAttackParam();
+        var order = battleTable.getBattleObject().getAttackOrder();
+
+        // ▲カットインを出してみる
+        if (order.getCurrentIndex() == 0) {
+
+            var animeList = root.getBaseData().getEffectAnimationList(false);
+            var animeData = animeList.getDataFromId(tona_Setting.criticalCutinAnimeId);
+            root.log(animeData.getName());
+            return animeData;
+        }
+
+        return null;
+    }
+});

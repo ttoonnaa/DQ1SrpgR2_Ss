@@ -7,4 +7,5 @@ var tona_Setting = { __dummy: null
 
 	, richQuickValue: 300
 	, voiceSoundId: 15
+	, criticalCutinAnimeId: 0
 };
