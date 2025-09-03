@@ -142,6 +142,65 @@ var tona_UnitControl = { __dummy: null
 			unit.setFaceResourceHandle(imageHandle);
 		}
 	}
+
+    // *****************************************************************************************************************************
+    // 音声ハンドルを取得する
+    // -----------------------------------------------------------------------------------------------------------------------------
+	, getVoiceHandle: function(unit, index) {
+
+		// 参照しているプレイヤーのIDを取得する
+		var refPlayerId = this.getRefPlayerId(unit);
+
+		// プレイヤーを参照している場合の音声
+		if (refPlayerId >= 0) {
+
+	        var masterPlayer = Master.playerById[refPlayerId];
+	        if (masterPlayer.voice != null) {
+	            var soundId = masterPlayer.voice[index];
+	            if (soundId != null) {
+					var soundHandle = tona_Utility.getSoundHandle(soundId);
+					if (soundHandle != null) {
+						return soundHandle;
+					}
+	            }
+	        }
+		}
+
+		return null;
+	}
+
+    // *****************************************************************************************************************************
+    // クリティカルのカットイン画像を入れ替える
+    // -----------------------------------------------------------------------------------------------------------------------------
+    , changeCriticalCutinImage: function(unit, graphicsType, isRuntime, imageId, colorIndex) {
+
+		// カットイン画像の場合は置き換える
+		if (graphicsType == GraphicsType.PICTURE && isRuntime == false && imageId == tona_Setting.criticalCutinDummyImageId) {
+           	return this.getImage(unit, 1);
+		}
+
+		// そのままのデータを返す
+		var imageList = root.getBaseData().getGraphicsResourceList(graphicsType, isRuntime);
+		var image = imageList.getCollectionDataFromId(imageId, colorIndex);
+		return image;
+    }
+
+    // *****************************************************************************************************************************
+    // クリティカルのカットイン音声を入れ替える
+    // -----------------------------------------------------------------------------------------------------------------------------
+    , changeCriticalCutinSound: function(unit, soundHandle) {
+
+		var isRuntime = soundHandle.getHandleType() == ResourceHandleType.RUNTIME;
+		var resourceId = soundHandle.getResourceId();
+
+        // カットイン音声の場合は入れ替える
+        if (isRuntime == false && resourceId == tona_Setting.criticalCutinDummySoundId) {
+			return this.getVoiceHandle(unit, 0);
+        }
+
+		// そのままのハンドルを返す
+        return soundHandle;
+    }
 };
 
 
